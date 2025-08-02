@@ -978,10 +978,10 @@
         startAutoMode() {
           this.autoBtn.textContent = 'إيقاف التلقائي';
           this.autoBtn.classList.add('active');
-          this.autoModeInfo.textContent = `تلقائي (كل ${(
+          this.autoModeInfo.textContent = `تلقائي (كل ${+(
             this.averageInterval / 1000
           ).toFixed(1)}ث)`;
-
+          
           this.autoInterval = setInterval(() => {
             this.count++;
             this.updateDisplay();
