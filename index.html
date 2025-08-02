@@ -663,6 +663,7 @@
           this.lastClickTime = 0;
           this.clickDebounceTime = 1000; // 1 second default, but can be set to 0
           this.titleScrollPaused = false;
+          this.installPromptShown = false;
 
           // Auto mode properties
           this.autoMode = false;
@@ -758,7 +759,6 @@
 
           // Double tap for counter reset
           this.counterNumber.addEventListener('click', (e) => {
-            e.stopPropagation();
             this.handleDoubleClick('counter', () => this.resetCount());
           });
 
@@ -883,6 +883,47 @@
           this.playFeedback();
 
           this.checkGoalReached();
+          // Show install prompt after 3 counts
+          if (this.count === 3 && !this.installPromptShown) {
+            this.showInstallPrompt();
+          }
+        }
+
+        showInstallPrompt() {
+          if (this.neverShowInstallPrompt) return;
+
+          this.installPromptShown = true;
+
+          const content = `
+            <div class="modal-content" style="text-align: center;">
+              <div style="font-size: 3rem; margin-bottom: 15px;">📱</div>
+              <h3 style="color: #4facfe; margin-bottom: 15px;">تجربة أفضل في انتظارك!</h3>
+              <p style="line-height: 1.6;">يمكنك تثبيت التطبيق على جهازك للحصول على:</p>
+              <ul style="text-align: right; margin: 15px 0; color: rgba(255,255,255,0.9);">
+                <li>🚀 أداء أسرع وأكثر استقراراً</li>
+                <li>📴 يعمل بدون انترنت</li>
+                <li>🔔 تجربة تطبيق حقيقي</li>
+                <li>💾 حفظ تلقائي للبيانات</li>
+              </ul>
+              <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                اضغط على زر <strong>Share/المشاركة</strong> في المتصفح ثم <strong>"Add to Home Screen"</strong>
+              </p>
+            </div>
+          `;
+
+          this.showModal('🌟 ثبت التطبيق الآن', content, [
+            { text: 'فهمت!', primary: true, action: () => this.hideModal() },
+            {
+              text: 'لا تظهر مرة أخرى',
+              action: () => {
+                this.neverShowInstallPrompt = true;
+                this.saveData();
+                this.hideModal();
+              },
+            },
+          ]);
+
+          this.saveData();
         }
 
         trackClickTime(time) {
@@ -937,7 +978,9 @@
         startAutoMode() {
           this.autoBtn.textContent = 'إيقاف التلقائي';
           this.autoBtn.classList.add('active');
-          this.autoModeInfo.textContent = `تلقائي (كل ${this.averageInterval / 1000}ث)`;
+          this.autoModeInfo.textContent = `تلقائي (كل ${
+            this.averageInterval / 1000
+          }ث)`;
 
           this.autoInterval = setInterval(() => {
             this.count++;
@@ -1853,6 +1896,8 @@
             currentGroupIndex: this.currentGroupIndex,
             inGroupMode: this.inGroupMode,
             dhikrOptions: this.dhikrOptions,
+            installPromptShown: this.installPromptShown,
+            neverShowInstallPrompt: this.neverShowInstallPrompt || false,
           };
 
           try {
@@ -1879,6 +1924,9 @@
               this.currentGroupIndex = data.currentGroupIndex || 0;
               this.inGroupMode = data.inGroupMode || false;
               this.dhikrOptions = data.dhikrOptions || this.dhikrOptions;
+              this.installPromptShown = data.installPromptShown || false;
+              this.neverShowInstallPrompt =
+                data.neverShowInstallPrompt || false;
             }
           } catch (e) {
             console.log('Could not load data from localStorage');
