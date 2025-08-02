@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Tasbih Counter</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-family: 'Cairo', Arial, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0f0f23 0%,
+          #1a1a2e 50%,
+          #16213e 100%
+        );
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        overflow: hidden;
+        position: relative;
+        direction: rtl;
+      }
+
+      .app-container {
+        background: rgba(30, 30, 45, 0.9);
+        backdrop-filter: blur(20px);
+        border-radius: 30px;
+        padding: 20px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        max-width: 380px;
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        height: 50px;
+        flex-shrink: 0;
+      }
+
+      .app-title {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 15px;
+        padding: 8px 16px;
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+        background: rgba(79, 172, 254, 0.1);
+        border: 1px solid rgba(79, 172, 254, 0.2);
+        flex-grow: 1;
+        margin-left: 10px;
+        text-align: center;
+        direction: rtl;
+      }
+
+      .app-title:hover {
+        background: rgba(79, 172, 254, 0.2);
+        transform: translateY(-1px);
+      }
+
+      .title-text {
+        display: inline-block;
+        animation: scroll-text 10s linear infinite;
+      }
+
+      .title-text.paused {
+        animation-play-state: paused;
+      }
+
+      .title-text.short {
+        animation: none;
+      }
+
+      @keyframes scroll-text {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .control-buttons {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        direction: ltr;
+      }
+
+      .control-btn {
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-width: 40px;
+        text-align: center;
+      }
+
+      .control-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px);
+      }
+
+      .counter-container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin: 10px 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .counter-container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
+      }
+
+      .counter-container:active {
+        transform: scale(0.98);
+      }
+
+      .counter-container.pulse {
+        transform: scale(1.02);
+        box-shadow: 0 30px 60px rgba(102, 126, 234, 0.5);
+      }
+
+      .counter-display {
+        text-align: center;
+        padding: 40px 20px;
+        position: relative;
+        z-index: 2;
+        direction: rtl;
+      }
+
+      .counter-number {
+        font-size: 4rem;
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        margin-bottom: 10px;
+      }
+
+      .counter-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .progress-section {
+        margin: 15px 0;
+        flex-shrink: 0;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        width: 0%;
+      }
+
+      .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        direction: rtl;
+      }
+
+      .goal-info {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .goal-info:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+      }
+
+      .auto-mode-info {
+        font-size: 0.8rem;
+        color: #4facfe;
+        font-weight: 600;
+      }
+
+      .bottom-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        flex-shrink: 0;
+      }
+
+      .bottom-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 15px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        direction: rtl;
+      }
+
+      .auto-btn {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+      }
+
+      .auto-btn.active {
+        background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+      }
+
+      .groups-btn {
+        background: linear-gradient(135deg, #ffd93d 0%, #ff9f43 100%);
+        color: #333;
+      }
+
+      .bottom-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Toast Notifications */
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: -100%;
+        background: rgba(30, 30, 45, 0.95);
+        backdrop-filter: blur(20px);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 5000;
+        max-width: 90%;
+        text-align: center;
+        font-weight: 600;
+        direction: rtl;
+      }
+
+      .toast.show {
+        right: 20px;
+      }
+
+      .toast.hide {
+        right: -100%;
+      }
+
+      .toast.success {
+        border-color: #51cf66;
+        background: rgba(81, 207, 102, 0.1);
+      }
+
+      .toast.celebration {
+        border-color: #ffd93d;
+        background: rgba(255, 217, 61, 0.1);
+        animation: celebration 0.6s ease;
+      }
+
+      @keyframes celebration {
+        0%,
+        100% {
+          right: 20px;
+          transform: scale(1);
+        }
+        50% {
+          right: 15px;
+          transform: scale(1.05);
+        }
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 4000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal {
+        background: rgba(30, 30, 45, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 25px;
+        max-width: 350px;
+        width: 90%;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transform: scale(0.8);
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        direction: rtl;
+        text-align: right;
+      }
+
+      .modal-overlay.show .modal {
+        transform: scale(1);
+      }
+
+      .modal-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        text-align: center;
+        color: #4facfe;
+        direction: rtl;
+      }
+
+      .modal-content {
+        margin: 15px 0;
+        line-height: 1.5;
+        direction: rtl;
+        text-align: right;
+      }
+
+      .modal-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 1rem;
+        margin: 10px 0;
+        direction: rtl;
+        text-align: right;
+      }
+
+      .modal-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .modal-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .modal-btn.primary {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+      }
+
+      .modal-btn.secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .modal-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .dhikr-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin: 15px 0;
+        direction: rtl;
+      }
+
+      .dhikr-item {
+        padding: 12px;
+        margin: 5px 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+        direction: rtl;
+        text-align: right;
+      }
+
+      .dhikr-item:hover {
+        background: rgba(79, 172, 254, 0.2);
+        border-color: #4facfe;
+      }
+
+      .group-item {
+        padding: 15px;
+        margin: 8px 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+        direction: rtl;
+        text-align: right;
+      }
+
+      .group-item:hover {
+        background: rgba(255, 217, 61, 0.2);
+        border-color: #ffd93d;
+      }
+
+      .group-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #ffd93d;
+      }
+
+      .group-desc {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .custom-group-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .group-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .action-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        min-width: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .edit-btn:hover {
+        background: rgba(79, 172, 254, 0.3);
+        border-color: #4facfe;
+      }
+
+      .delete-btn:hover {
+        background: rgba(255, 107, 107, 0.3);
+        border-color: #ff6b6b;
+      }
+
+      .floating-particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+        border-radius: 30px;
+      }
+
+      .particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: rgba(79, 172, 254, 0.6);
+        border-radius: 50%;
+        animation: float 8s infinite linear;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(100vh) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-100px) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .app-container {
+          padding: 15px;
+        }
+
+        .counter-number {
+          font-size: 3.5rem;
+        }
+
+        .app-title {
+          font-size: 1.1rem;
+        }
+
+        .counter-display {
+          padding: 35px 15px;
+        }
+      }
+
+      .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: ripple-effect 0.6s linear;
+        pointer-events: none;
+      }
+
+      @keyframes ripple-effect {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="floating-particles" id="particles"></div>
+
+      <div class="header">
+        <div class="app-title" id="appTitle">
+          <span class="title-text" id="titleText">سبحان الله</span>
+        </div>
+        <div class="control-buttons">
+          <div class="control-btn" id="helpButton">?</div>
+          <div class="control-btn" id="menuButton">☰</div>
+        </div>
+      </div>
+
+      <div class="counter-container" id="counterContainer">
+        <div class="counter-display">
+          <div class="counter-number" id="counterNumber">0</div>
+          <div class="counter-label">مرة</div>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-info">
+          <div class="goal-info" id="goalInfo">الهدف: 100</div>
+          <div class="auto-mode-info" id="autoModeInfo"></div>
+        </div>
+      </div>
+
+      <div class="bottom-controls">
+        <button class="bottom-btn auto-btn" id="autoBtn">تفعيل التلقائي</button>
+        <button class="bottom-btn groups-btn" id="groupsBtn">
+          مجموعات الأذكار
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal" id="modal">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-content" id="modalContent"></div>
+        <div class="modal-buttons" id="modalButtons"></div>
+      </div>
+    </div>
+
+    <script>
+      class AdvancedTasbihApp {
+        constructor() {
+          this.count = 0;
+          this.goal = 100;
+          this.currentDhikr = 'سبحان الله';
+          this.lastClickTime = 0;
+          this.clickDebounceTime = 1000; // 1 second default, but can be set to 0
+          this.titleScrollPaused = false;
+
+          // Auto mode properties
+          this.autoMode = false;
+          this.autoInterval = null;
+          this.clickTimes = [];
+          this.averageInterval = 0;
+          this.autoModeAvailable = false;
+          this.minClicksForAuto = 10;
+
+          // Groups system
+          this.currentGroup = null;
+          this.currentGroupIndex = 0;
+          this.inGroupMode = false;
+
+          this.dhikrOptions = [
+            'سبحان الله',
+            'الحمد لله',
+            'الله أكبر',
+            'لا إله إلا الله',
+            'أستغفر الله',
+            'لا حول ولا قوة إلا بالله',
+          ];
+
+          this.dhikrGroups = [
+            {
+              name: 'أذكار ما بعد الصلاة',
+              dhikrs: [
+                { text: 'سبحان الله', count: 33 },
+                { text: 'الحمد لله', count: 33 },
+                { text: 'الله أكبر', count: 34 },
+              ],
+            },
+            {
+              name: 'الباقيات الصالحات',
+              dhikrs: [
+                { text: 'سبحان الله', count: 25 },
+                { text: 'الحمد لله', count: 25 },
+                { text: 'الله أكبر', count: 25 },
+                { text: 'لا إله إلا الله', count: 25 },
+              ],
+            },
+          ];
+
+          this.customGroups = [];
+
+          this.clickTimers = {
+            title: null,
+            counter: null,
+            goal: null,
+            autoReset: null,
+          };
+
+          this.initializeElements();
+          this.attachEventListeners();
+          this.createParticles();
+          this.loadData();
+          this.updateDisplay();
+        }
+
+        initializeElements() {
+          this.appTitle = document.getElementById('appTitle');
+          this.titleText = document.getElementById('titleText');
+          this.counterNumber = document.getElementById('counterNumber');
+          this.counterContainer = document.getElementById('counterContainer');
+          this.progressFill = document.getElementById('progressFill');
+          this.goalInfo = document.getElementById('goalInfo');
+          this.autoBtn = document.getElementById('autoBtn');
+          this.groupsBtn = document.getElementById('groupsBtn');
+          this.autoModeInfo = document.getElementById('autoModeInfo');
+          this.toast = document.getElementById('toast');
+          this.modalOverlay = document.getElementById('modalOverlay');
+          this.modal = document.getElementById('modal');
+          this.modalTitle = document.getElementById('modalTitle');
+          this.modalContent = document.getElementById('modalContent');
+          this.modalButtons = document.getElementById('modalButtons');
+        }
+
+        attachEventListeners() {
+          // Counter click
+          this.counterContainer.addEventListener('click', (e) => {
+            this.createRipple(e);
+            this.incrementCount();
+          });
+
+          // Title click - pause/resume scroll OR double click to change dhikr
+          this.appTitle.addEventListener('click', () => {
+            this.handleDoubleClick(
+              'title',
+              () => this.showDhikrSelection(),
+              () => this.toggleTitleScroll()
+            );
+          });
+
+          // Double tap for counter reset
+          this.counterNumber.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleDoubleClick('counter', () => this.resetCount());
+          });
+
+          // Double tap for goal change
+          this.goalInfo.addEventListener('click', () => {
+            this.handleDoubleClick('goal', () => this.changeGoal());
+          });
+
+          // Auto mode button
+          this.autoBtn.addEventListener('click', () => {
+            this.toggleAutoMode();
+          });
+
+          // Groups button
+          this.groupsBtn.addEventListener('click', () => {
+            this.showGroupsModal();
+          });
+
+          // Help button
+          document
+            .getElementById('helpButton')
+            .addEventListener('click', () => {
+              this.showHelpModal();
+            });
+
+          // Menu button
+          document
+            .getElementById('menuButton')
+            .addEventListener('click', () => {
+              this.showMenuModal();
+            });
+
+          // Modal overlay click
+          this.modalOverlay.addEventListener('click', (e) => {
+            if (e.target === this.modalOverlay) {
+              this.hideModal();
+            }
+          });
+
+          // Double tap to reset auto interval
+          this.autoModeInfo.addEventListener('click', () => {
+            this.handleDoubleClick('autoReset', () => this.resetAutoInterval());
+          });
+        }
+
+        createRipple(e) {
+          const ripple = document.createElement('span');
+          const rect = this.counterContainer.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+
+          ripple.className = 'ripple';
+          ripple.style.width = ripple.style.height = size + 'px';
+          ripple.style.left = x + 'px';
+          ripple.style.top = y + 'px';
+
+          this.counterContainer.appendChild(ripple);
+
+          setTimeout(() => {
+            ripple.remove();
+          }, 600);
+        }
+
+        toggleTitleScroll() {
+          this.titleScrollPaused = !this.titleScrollPaused;
+          if (this.titleScrollPaused) {
+            this.titleText.classList.add('paused');
+            this.showToast('تم إيقاف التمرير', 'success');
+          } else {
+            this.titleText.classList.remove('paused');
+            this.showToast('تم تشغيل التمرير', 'success');
+          }
+        }
+
+        handleDoubleClick(
+          type,
+          doubleClickCallback,
+          singleClickCallback = null
+        ) {
+          if (this.clickTimers[type]) {
+            clearTimeout(this.clickTimers[type]);
+            this.clickTimers[type] = null;
+            doubleClickCallback();
+          } else {
+            this.clickTimers[type] = setTimeout(() => {
+              this.clickTimers[type] = null;
+              if (singleClickCallback) {
+                singleClickCallback();
+              }
+            }, 300);
+          }
+        }
+
+        incrementCount() {
+          const now = Date.now();
+
+          // Prevent rapid clicking (only if debounce time > 0)
+          if (
+            this.clickDebounceTime > 0 &&
+            now - this.lastClickTime < this.clickDebounceTime
+          ) {
+            const waitTime = Math.ceil(
+              (this.clickDebounceTime - (now - this.lastClickTime)) / 1000
+            );
+            this.showToast(
+              `انتظر ${waitTime} ثانية قبل الزيادة التالية`,
+              'error'
+            );
+            return;
+          }
+
+          this.lastClickTime = now;
+          this.count++;
+
+          // Track click times for auto mode
+          this.trackClickTime(now);
+
+          this.updateDisplay();
+          this.saveData();
+          this.animateCounter();
+          this.playFeedback();
+
+          this.checkGoalReached();
+        }
+
+        trackClickTime(time) {
+          this.clickTimes.push(time);
+
+          if (this.clickTimes.length > this.minClicksForAuto) {
+            this.clickTimes.shift();
+          }
+
+          if (
+            this.clickTimes.length >= this.minClicksForAuto &&
+            !this.autoModeAvailable
+          ) {
+            this.calculateAverageInterval();
+            this.autoModeAvailable = true;
+            this.showToast('🤖 الآن يمكنك تفعيل الزيادة التلقائية!', 'success');
+            this.autoBtn.style.background =
+              'linear-gradient(135deg, #51cf66 0%, #40c057 100%)';
+          }
+        }
+
+        calculateAverageInterval() {
+          if (this.clickTimes.length < 2) return;
+
+          let totalInterval = 0;
+          for (let i = 1; i < this.clickTimes.length; i++) {
+            totalInterval += this.clickTimes[i] - this.clickTimes[i - 1];
+          }
+
+          this.averageInterval = totalInterval / (this.clickTimes.length - 1);
+          console.log('Average interval calculated:', this.averageInterval);
+        }
+
+        toggleAutoMode() {
+          if (!this.autoModeAvailable) {
+            this.showToast(
+              `قم بالزيادة ${this.minClicksForAuto} مرات أولاً لحساب سرعتك`,
+              'error'
+            );
+            return;
+          }
+
+          this.autoMode = !this.autoMode;
+
+          if (this.autoMode) {
+            this.startAutoMode();
+          } else {
+            this.stopAutoMode();
+          }
+        }
+
+        startAutoMode() {
+          this.autoBtn.textContent = 'إيقاف التلقائي';
+          this.autoBtn.classList.add('active');
+          this.autoModeInfo.textContent = `تلقائي (كل ${this.averageInterval / 1000}ث)`;
+
+          this.autoInterval = setInterval(() => {
+            this.count++;
+            this.updateDisplay();
+            this.saveData();
+            this.animateCounter();
+            this.playFeedback();
+            this.checkGoalReached();
+          }, this.averageInterval);
+
+          this.showToast('تم تفعيل الزيادة التلقائية', 'success');
+        }
+
+        stopAutoMode() {
+          if (this.autoInterval) {
+            clearInterval(this.autoInterval);
+            this.autoInterval = null;
+          }
+
+          this.autoBtn.textContent = 'تفعيل التلقائي';
+          this.autoBtn.classList.remove('active');
+          this.autoModeInfo.textContent = '';
+
+          this.showToast('تم إيقاف الزيادة التلقائية', 'success');
+        }
+
+        checkGoalReached() {
+          if (this.count > 0 && this.count % this.goal === 0) {
+            this.celebrateGoal();
+
+            if (this.inGroupMode && this.currentGroup) {
+              this.moveToNextDhikrInGroup();
+            }
+          }
+        }
+
+        celebrateGoal() {
+          this.createCelebrationParticles();
+          this.playLongVibration();
+
+          const multiple = Math.floor(this.count / this.goal);
+          if (multiple === 1) {
+            this.showToast('🎉 ماشاء الله! تم إنجاز الهدف! 🎉', 'celebration');
+          } else {
+            this.showToast(
+              `🎉 ممتاز! تم إنجاز الهدف ${multiple} مرات! 🎉`,
+              'celebration'
+            );
+          }
+        }
+
+        moveToNextDhikrInGroup() {
+          this.currentGroupIndex++;
+
+          if (this.currentGroupIndex >= this.currentGroup.dhikrs.length) {
+            // Group completed
+            this.showToast('🎊 تم إنهاء المجموعة بالكامل! 🎊', 'celebration');
+            this.inGroupMode = false;
+            this.currentGroup = null;
+            this.currentGroupIndex = 0;
+            this.goal = 100; // Reset to default
+
+            // Reset auto mode when group is completed
+            this.resetAutoMode();
+          } else {
+            // Move to next dhikr
+            const nextDhikr = this.currentGroup.dhikrs[this.currentGroupIndex];
+            this.currentDhikr = nextDhikr.text;
+            this.goal = nextDhikr.count;
+            this.count = 0; // Reset count for new dhikr
+
+            // Reset auto mode when changing dhikr in group
+            this.resetAutoMode();
+
+            this.playLongVibration();
+            this.showToast(`الانتقال إلى: ${nextDhikr.text}`, 'success');
+          }
+
+          this.updateDisplay();
+          this.saveData();
+        }
+
+        resetCount() {
+          this.showConfirmModal(
+            'إعادة تعيين العداد',
+            'هل أنت متأكد من إعادة تعيين العداد إلى الصفر؟',
+            () => {
+              this.count = 0;
+              this.updateDisplay();
+              this.saveData();
+              this.animateReset();
+              this.showToast('تم إعادة تعيين العداد', 'success');
+            }
+          );
+        }
+
+        changeGoal() {
+          this.showInputModal(
+            'تغيير الهدف',
+            'أدخل الهدف الجديد:',
+            this.goal.toString(),
+            'number',
+            (value) => {
+              const newGoal = parseInt(value);
+              if (newGoal && newGoal > 0) {
+                this.goal = newGoal;
+                this.updateDisplay();
+                this.saveData();
+                this.showToast(`تم تغيير الهدف إلى ${newGoal}`, 'success');
+              }
+            }
+          );
+        }
+
+        showGroupsModal() {
+          const defaultGroups = this.dhikrGroups;
+          const customGroups = this.customGroups;
+
+          let content = '<div class="dhikr-list">';
+
+          // Default groups (non-editable)
+          if (defaultGroups.length > 0) {
+            content +=
+              '<p style="color: #4facfe; font-weight: 600; margin: 10px 0;">المجموعات الافتراضية:</p>';
+            defaultGroups.forEach((group, index) => {
+              content += `
+                <div class="group-item" onclick="app.selectGroup(${index})">
+                  <div class="group-title">${group.name}</div>
+                  <div class="group-desc">
+                    ${group.dhikrs
+                      .map((d) => `${d.text} (${d.count})`)
+                      .join(' • ')}
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          // Custom groups (editable)
+          if (customGroups.length > 0) {
+            content +=
+              '<p style="color: #ffd93d; font-weight: 600; margin: 15px 0 10px 0;">المجموعات المخصصة:</p>';
+            customGroups.forEach((group, index) => {
+              const groupIndex = defaultGroups.length + index;
+              content += `
+                <div class="group-item custom-group-item">
+                  <div onclick="app.selectGroup(${groupIndex})" style="flex-grow: 1;">
+                    <div class="group-title">${group.name}</div>
+                    <div class="group-desc">
+                      ${group.dhikrs
+                        .map((d) => `${d.text} (${d.count})`)
+                        .join(' • ')}
+                    </div>
+                  </div>
+                  <div class="group-actions">
+                    <button onclick="event.stopPropagation(); app.editCustomGroup(${index})" class="action-btn edit-btn" title="تعديل">
+                      ✏️
+                    </button>
+                    <button onclick="event.stopPropagation(); app.deleteCustomGroup(${index})" class="action-btn delete-btn" title="حذف">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          content += `
+            <div class="group-item" onclick="app.createCustomGroup()">
+              <div class="group-title">➕ إنشاء مجموعة مخصصة</div>
+              <div class="group-desc">أضف مجموعة أذكار بأعداد مخصصة</div>
+            </div>
+          `;
+
+          content += '</div>';
+
+          this.showModal('مجموعات الأذكار', content);
+        }
+
+        selectGroup(index) {
+          const allGroups = [...this.dhikrGroups, ...this.customGroups];
+          this.currentGroup = allGroups[index];
+          this.currentGroupIndex = 0;
+          this.inGroupMode = true;
+
+          const firstDhikr = this.currentGroup.dhikrs[0];
+          this.currentDhikr = firstDhikr.text;
+          this.goal = firstDhikr.count;
+          this.count = 0;
+
+          // Reset auto mode when starting a group
+          this.resetAutoMode();
+
+          this.hideModal();
+          this.updateDisplay();
+          this.saveData();
+
+          this.showToast(`بدء مجموعة: ${this.currentGroup.name}`, 'success');
+        }
+
+        createCustomGroup() {
+          this.hideModal();
+
+          this.showInputModal(
+            'إنشاء مجموعة مخصصة',
+            'أدخل اسم المجموعة:',
+            '',
+            'text',
+            (groupName) => {
+              if (groupName.trim()) {
+                this.hideModal(); // Hide the input modal first
+                this.customGroupBuilder = {
+                  name: groupName.trim(),
+                  dhikrs: [],
+                  editIndex: undefined, // Mark as new creation
+                };
+                setTimeout(() => {
+                  this.showCustomGroupBuilder(groupName.trim());
+                }, 100);
+              }
+            },
+            false
+          );
+        }
+
+        showCustomGroupBuilder(groupName) {
+          const dhikrsList = this.customGroupBuilder.dhikrs
+            .map(
+              (dhikr, index) => `
+            <div class="dhikr-item" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>${dhikr.text} (${dhikr.count})</span>
+              <button onclick="app.removeCustomDhikr(${index})" style="background: #ff6b6b; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                🗑️
+              </button>
+            </div>
+          `
+            )
+            .join('');
+
+          const content = `
+            <div>
+              <p>إنشاء مجموعة: <strong>${groupName}</strong></p>
+              <div style="max-height: 200px; overflow-y: auto; margin: 15px 0;">
+                ${dhikrsList}
+              </div>
+              <button class="modal-btn primary" onclick="app.addCustomDhikr()" style="width: 100%; margin: 10px 0;">
+                ➕ إضافة ذكر
+              </button>
+            </div>
+          `;
+
+          this.showModal('بناء المجموعة المخصصة', content, [
+            {
+              text: 'حفظ المجموعة',
+              primary: true,
+              action: () => this.saveCustomGroup(groupName),
+            },
+            { text: 'إلغاء', action: () => this.hideModal() },
+          ]);
+        }
+
+        addCustomDhikr() {
+          this.showInputModal(
+            'إضافة ذكر',
+            'أدخل النص:',
+            '',
+            'text',
+            (dhikrText) => {
+              if (dhikrText.trim()) {
+                this.showInputModal(
+                  'عدد التكرارات',
+                  'أدخل عدد التكرارات:',
+                  '33',
+                  'number',
+                  (count) => {
+                    const countNum = parseInt(count);
+                    if (countNum && countNum > 0) {
+                      this.customGroupBuilder.dhikrs.push({
+                        text: dhikrText.trim(),
+                        count: countNum,
+                      });
+
+                      // Go back to appropriate builder
+                      setTimeout(() => {
+                        if (this.customGroupBuilder.editIndex !== undefined) {
+                          // We're editing
+                          this.showCustomGroupEditor(
+                            this.customGroupBuilder.name,
+                            this.customGroupBuilder.editIndex
+                          );
+                        } else {
+                          // We're creating new
+                          this.showCustomGroupBuilder(
+                            this.customGroupBuilder.name
+                          );
+                        }
+                      }, 100);
+                    }
+                  },
+                  false
+                );
+              }
+            },
+            false
+          );
+        }
+
+        updateCustomGroupDisplay() {
+          // Return to the group builder immediately
+          this.showCustomGroupBuilder(this.customGroupBuilder.name);
+        }
+
+        deleteCustomGroup(index) {
+          const group = this.customGroups[index];
+          this.showConfirmModal(
+            'حذف المجموعة',
+            `هل أنت متأكد من حذف مجموعة "${group.name}"؟ لا يمكن التراجع عن هذا الإجراء.`,
+            () => {
+              // Check if this group is currently active
+              if (
+                this.inGroupMode &&
+                this.currentGroup &&
+                this.currentGroup.name === group.name
+              ) {
+                // Reset to default state if deleting active group
+                this.inGroupMode = false;
+                this.currentGroup = null;
+                this.currentGroupIndex = 0;
+                this.currentDhikr = 'سبحان الله';
+                this.goal = 100;
+                this.count = 0;
+                this.resetAutoMode();
+                this.updateDisplay();
+              }
+
+              this.customGroups.splice(index, 1);
+              this.saveData();
+              this.showToast(`تم حذف مجموعة: ${group.name}`, 'success');
+
+              // Refresh the groups modal
+              setTimeout(() => {
+                this.showGroupsModal();
+              }, 1000);
+            }
+          );
+        }
+
+        editCustomGroup(index) {
+          const group = this.customGroups[index];
+          this.hideModal();
+
+          // Set up the editor with existing group data
+          this.customGroupBuilder = {
+            name: group.name,
+            dhikrs: [...group.dhikrs], // Copy existing dhikrs
+            editIndex: index, // Mark that we're editing
+          };
+
+          setTimeout(() => {
+            this.showCustomGroupEditor(group.name, index);
+          }, 100);
+        }
+
+        showCustomGroupEditor(groupName, editIndex) {
+          const dhikrsList = this.customGroupBuilder.dhikrs
+            .map(
+              (dhikr, index) => `
+            <div class="dhikr-item" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>${dhikr.text} (${dhikr.count})</span>
+              <button onclick="app.removeCustomDhikr(${index})" style="background: #ff6b6b; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                🗑️
+              </button>
+            </div>
+          `
+            )
+            .join('');
+
+          const content = `
+            <div>
+              <p>تعديل مجموعة: <strong>${groupName}</strong></p>
+              <button class="modal-btn secondary" onclick="app.editGroupName(${editIndex})" style="width: 100%; margin: 10px 0;">
+                ✏️ تعديل اسم المجموعة
+              </button>
+              <div style="max-height: 200px; overflow-y: auto; margin: 15px 0;">
+                ${dhikrsList}
+              </div>
+              <button class="modal-btn primary" onclick="app.addCustomDhikr()" style="width: 100%; margin: 10px 0;">
+                ➕ إضافة ذكر
+              </button>
+            </div>
+          `;
+
+          this.showModal('تعديل المجموعة المخصصة', content, [
+            {
+              text: 'حفظ التعديلات',
+              primary: true,
+              action: () => this.saveEditedGroup(editIndex),
+            },
+            { text: 'إلغاء', action: () => this.hideModal() },
+          ]);
+        }
+
+        editGroupName(editIndex) {
+          const currentName = this.customGroupBuilder.name;
+          this.showInputModal(
+            'تعديل اسم المجموعة',
+            'أدخل الاسم الجديد:',
+            currentName,
+            'text',
+            (newName) => {
+              if (newName.trim() && newName.trim() !== currentName) {
+                this.customGroupBuilder.name = newName.trim();
+                this.hideModal();
+                setTimeout(() => {
+                  this.showCustomGroupEditor(newName.trim(), editIndex);
+                }, 100);
+              } else {
+                this.hideModal();
+                setTimeout(() => {
+                  this.showCustomGroupEditor(currentName, editIndex);
+                }, 100);
+              }
+            },
+            false
+          );
+        }
+
+        saveEditedGroup(editIndex) {
+          if (this.customGroupBuilder.dhikrs.length === 0) {
+            this.hideModal();
+            setTimeout(() => {
+              this.showToast('أضف ذكراً واحداً على الأقل', 'error');
+              setTimeout(() => {
+                this.showCustomGroupEditor(
+                  this.customGroupBuilder.name,
+                  editIndex
+                );
+              }, 3500);
+            }, 300);
+            return;
+          }
+
+          // Check if this group is currently active and update it
+          const oldGroup = this.customGroups[editIndex];
+          if (
+            this.inGroupMode &&
+            this.currentGroup &&
+            this.currentGroup.name === oldGroup.name
+          ) {
+            // Update current group reference
+            this.currentGroup = {
+              name: this.customGroupBuilder.name,
+              dhikrs: [...this.customGroupBuilder.dhikrs],
+            };
+          }
+
+          // Update the group
+          this.customGroups[editIndex] = {
+            name: this.customGroupBuilder.name,
+            dhikrs: [...this.customGroupBuilder.dhikrs],
+          };
+
+          this.hideModal();
+          this.saveData();
+          this.updateDisplay(); // Update display in case active group was modified
+          this.showToast(
+            `تم تعديل مجموعة: ${this.customGroupBuilder.name}`,
+            'success'
+          );
+
+          // Show groups modal after successful edit
+          setTimeout(() => {
+            this.showGroupsModal();
+          }, 1000);
+        }
+
+        saveCustomGroup(groupName) {
+          if (this.customGroupBuilder.dhikrs.length === 0) {
+            // Hide modal first, then show toast with delay to ensure it's visible
+            this.hideModal();
+            setTimeout(() => {
+              this.showToast('أضف ذكراً واحداً على الأقل', 'error');
+              // Show the group builder again after error toast
+              setTimeout(() => {
+                this.showCustomGroupBuilder(groupName);
+              }, 3500);
+            }, 300);
+            return;
+          }
+
+          this.customGroups.push({
+            name: groupName,
+            dhikrs: [...this.customGroupBuilder.dhikrs],
+          });
+
+          this.hideModal();
+          this.saveData();
+          this.showToast(`تم حفظ مجموعة: ${groupName}`, 'success');
+
+          // Show groups modal after successful creation
+          setTimeout(() => {
+            this.showGroupsModal();
+          }, 1000);
+        }
+
+        showMenuModal() {
+          let content = '<div class="dhikr-list">';
+
+          content += `
+            <div class="dhikr-item" onclick="app.showDhikrSelection()">
+              <strong>تغيير الذكر الحالي</strong>
+            </div>
+            <div class="dhikr-item" onclick="app.showSettings()">
+              <strong>الإعدادات</strong>
+            </div>
+            <div class="dhikr-item" onclick="app.showStats()">
+              <strong>الإحصائيات</strong>
+            </div>
+          `;
+
+          content += '</div>';
+
+          this.showModal('القائمة الرئيسية', content);
+        }
+
+        showDhikrSelection() {
+          let content = '<div class="dhikr-list">';
+
+          this.dhikrOptions.forEach((dhikr, index) => {
+            const isSelected = dhikr === this.currentDhikr;
+            content += `
+              <div class="dhikr-item ${
+                isSelected ? 'selected' : ''
+              }" onclick="app.selectDhikr(${index})" style="${
+              isSelected
+                ? 'background: rgba(79, 172, 254, 0.3); border-color: #4facfe;'
+                : ''
+            }">
+                ${dhikr} ${isSelected ? '✓' : ''}
+              </div>
+            `;
+          });
+
+          content += `
+            <div class="dhikr-item" onclick="app.addCustomDhikrSingle()">
+              <strong>➕ إضافة ذكرمخصص</strong>
+            </div>
+          `;
+
+          content += '</div>';
+
+          this.showModal('اختيار الذكر', content);
+        }
+
+        selectDhikr(index) {
+          this.currentDhikr = this.dhikrOptions[index];
+
+          // Reset auto mode when changing dhikr
+          this.resetAutoMode();
+
+          this.hideModal();
+          this.updateDisplay();
+          this.saveData();
+          this.showToast(`تم تغيير الذكر إلى: ${this.currentDhikr}`, 'success');
+        }
+
+        resetAutoMode() {
+          // Stop auto mode if running
+          if (this.autoMode) {
+            this.stopAutoMode();
+          }
+
+          // Reset auto mode properties
+          this.autoMode = false;
+          this.autoModeAvailable = false;
+          this.clickTimes = [];
+          this.averageInterval = 0;
+
+          // Update button appearance
+          this.autoBtn.textContent = 'تفعيل التلقائي';
+          this.autoBtn.classList.remove('active');
+          this.autoBtn.style.background =
+            'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+          this.autoModeInfo.textContent = '';
+
+          this.showToast('تم إعادة تعيين النظام التلقائي', 'success');
+        }
+
+        addCustomDhikrSingle() {
+          this.hideModal();
+
+          this.showInputModal(
+            'إضافة ذكر مخصص',
+            'أدخل النص الجديد:',
+            '',
+            'text',
+            (dhikrText) => {
+              if (dhikrText.trim()) {
+                this.dhikrOptions.push(dhikrText.trim());
+                this.currentDhikr = dhikrText.trim();
+
+                // Reset auto mode when adding custom dhikr
+                this.resetAutoMode();
+
+                this.updateDisplay();
+                this.saveData();
+                this.showToast('تم إضافة الذكر المخصص', 'success');
+              }
+            }
+          );
+        }
+
+        showSettings() {
+          const content = `
+            <div>
+              <div class="modal-content">
+                <p><strong>زمن منع الزيادة السريعة:</strong></p>
+                <input type="range" min="0" max="3000" step="100" value="${
+                  this.clickDebounceTime
+                }" 
+                       onchange="app.updateDebounceTime(this.value)" 
+                       style="width: 100%; margin: 10px 0;">
+                <p style="text-align: center;">${
+                  this.clickDebounceTime === 0
+                    ? 'بدون قيود'
+                    : this.clickDebounceTime / 1000 + ' ثانية'
+                }</p>
+                
+                <p><strong>الحد الأدنى للزيادات لتفعيل التلقائي:</strong></p>
+                <input type="range" min="5" max="20" step="1" value="${
+                  this.minClicksForAuto
+                }" 
+                       onchange="app.updateMinClicks(this.value)" 
+                       style="width: 100%; margin: 10px 0;">
+                <p style="text-align: center;">${
+                  this.minClicksForAuto
+                } زيادات</p>
+              </div>
+            </div>
+          `;
+
+          this.showModal('الإعدادات', content);
+        }
+
+        updateDebounceTime(value) {
+          this.clickDebounceTime = parseInt(value);
+          this.saveData();
+        }
+
+        updateMinClicks(value) {
+          this.minClicksForAuto = parseInt(value);
+          this.saveData();
+        }
+
+        showStats() {
+          const totalSessions =
+            this.count > 0 ? Math.ceil(this.count / this.goal) : 0;
+          const autoStatus = this.autoModeAvailable ? 'متاح' : 'غير متاح';
+
+          const content = `
+            <div class="modal-content">
+              <p><strong>العداد الحالي:</strong> ${this.count}</p>
+              <p><strong>الهدف الحالي:</strong> ${this.goal}</p>
+              <p><strong>التقدم:</strong> ${Math.round(
+                (this.count / this.goal) * 100
+              )}%</p>
+              <p><strong>عدد الجلسات المكتملة:</strong> ${Math.floor(
+                this.count / this.goal
+              )}</p>
+              <p><strong>الذكر الحالي:</strong> ${this.currentDhikr}</p>
+              <p><strong>الزيادة التلقائية:</strong> ${autoStatus}</p>
+              ${
+                this.autoModeAvailable
+                  ? `<p><strong>متوسط السرعة:</strong> ${Math.round(
+                      this.averageInterval / 1000
+                    )} ثانية</p>`
+                  : ''
+              }
+              <p><strong>وضع المجموعة:</strong> ${
+                this.inGroupMode ? this.currentGroup.name : 'غير مفعل'
+              }</p>
+            </div>
+          `;
+
+          this.showModal('الإحصائيات', content);
+        }
+
+        showHelpModal() {
+          const content = `
+            <div class="modal-content">
+              <p><strong>كيفية الاستخدام:</strong></p>
+              <p>🖱️ انقر على العداد للزيادة</p>
+              <p>🔄 انقر مرتين على الرقم لإعادة التعيين</p>
+              <p>🎯 انقر مرتين على الهدف لتغييره</p>
+              <p>⏸️ انقر مرة على العنوان لإيقاف/تشغيل التمرير</p>
+              <p>📝 انقر مرتين على العنوان لتغيير الذكر</p>
+              <p>🤖 الزيادة التلقائية تتفعل بعد 10 زيادات</p>
+              <p>📱 اهتزاز عند الوصول للهدف ومضاعفاته</p>
+              <p>📚 استخدم مجموعات الأذكار للتسبيح المنظم</p>
+            </div>
+          `;
+
+          this.showModal('المساعدة', content);
+        }
+
+        showModal(title, content, buttons = null) {
+          this.modalTitle.textContent = title;
+          this.modalContent.innerHTML = content;
+
+          this.modalButtons.innerHTML = '';
+
+          if (buttons) {
+            buttons.forEach((btn) => {
+              const button = document.createElement('button');
+              button.className = `modal-btn ${
+                btn.primary ? 'primary' : 'secondary'
+              }`;
+              button.textContent = btn.text;
+              button.onclick = btn.action;
+              this.modalButtons.appendChild(button);
+            });
+          } else {
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'modal-btn primary';
+            closeBtn.textContent = 'حسناً';
+            closeBtn.onclick = () => this.hideModal();
+            this.modalButtons.appendChild(closeBtn);
+          }
+
+          this.modalOverlay.classList.add('show');
+        }
+
+        showInputModal(
+          title,
+          message,
+          defaultValue,
+          type,
+          callback,
+          autoHide = true
+        ) {
+          const content = `
+            <p>${message}</p>
+            <input type="${type}" class="modal-input" id="modalInput" value="${defaultValue}" placeholder="أدخل القيمة...">
+          `;
+
+          this.showModal(title, content, [
+            {
+              text: 'موافق',
+              primary: true,
+              action: () => {
+                const input = document.getElementById('modalInput');
+                if (input && input.value.trim()) {
+                  callback(input.value.trim());
+                  if (autoHide) {
+                    this.hideModal();
+                  }
+                }
+              },
+            },
+            { text: 'إلغاء', action: () => this.hideModal() },
+          ]);
+
+          setTimeout(() => {
+            const input = document.getElementById('modalInput');
+            if (input) {
+              input.focus();
+              input.select();
+            }
+          }, 100);
+        }
+
+        showConfirmModal(title, message, callback) {
+          this.showModal(title, `<p>${message}</p>`, [
+            {
+              text: 'نعم',
+              primary: true,
+              action: () => {
+                callback();
+                this.hideModal();
+              },
+            },
+            { text: 'إلغاء', action: () => this.hideModal() },
+          ]);
+        }
+
+        hideModal() {
+          this.modalOverlay.classList.remove('show');
+        }
+
+        showToast(message, type = 'default') {
+          this.toast.textContent = message;
+          this.toast.className = `toast ${type}`;
+          this.toast.classList.add('show');
+          this.toast.classList.remove('hide');
+
+          setTimeout(() => {
+            this.toast.classList.remove('show');
+            this.toast.classList.add('hide');
+          }, 3000);
+        }
+
+        updateDisplay() {
+          this.counterNumber.textContent = this.count;
+          this.goalInfo.textContent = `الهدف: ${this.goal}`;
+          this.titleText.textContent = this.currentDhikr;
+
+          // Check if title needs scrolling
+          const titleWidth = this.titleText.offsetWidth;
+          const containerWidth = this.appTitle.offsetWidth - 32; // Account for padding
+
+          if (titleWidth > containerWidth) {
+            this.titleText.classList.remove('short');
+          } else {
+            this.titleText.classList.add('short');
+          }
+
+          const progress = Math.min((this.count / this.goal) * 100, 100);
+          this.progressFill.style.width = `${progress}%`;
+
+          // Update group info if in group mode
+          if (this.inGroupMode && this.currentGroup) {
+            const groupProgress = `(${this.currentGroupIndex + 1}/${
+              this.currentGroup.dhikrs.length
+            })`;
+            this.goalInfo.textContent += ` ${groupProgress}`;
+          }
+          // Initialize Lucide icons
+          setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+              lucide.createIcons();
+            }
+          }, 100);
+        }
+
+        animateCounter() {
+          this.counterContainer.classList.add('pulse');
+          setTimeout(() => {
+            this.counterContainer.classList.remove('pulse');
+          }, 300);
+        }
+
+        animateReset() {
+          this.counterContainer.style.transform = 'rotateY(180deg)';
+          setTimeout(() => {
+            this.counterContainer.style.transform = 'rotateY(0deg)';
+          }, 300);
+        }
+
+        playFeedback() {
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+        }
+
+        playLongVibration() {
+          if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+          }
+        }
+
+        createParticles() {
+          const particlesContainer = document.getElementById('particles');
+
+          setInterval(() => {
+            if (Math.random() > 0.7) {
+              const particle = document.createElement('div');
+              particle.className = 'particle';
+              particle.style.left = Math.random() * 100 + '%';
+              particle.style.animationDuration = Math.random() * 4 + 4 + 's';
+              particlesContainer.appendChild(particle);
+
+              setTimeout(() => {
+                particle.remove();
+              }, 8000);
+            }
+          }, 1000);
+        }
+
+        createCelebrationParticles() {
+          const particlesContainer = document.getElementById('particles');
+
+          for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+              const particle = document.createElement('div');
+              particle.className = 'particle';
+              particle.style.left = Math.random() * 100 + '%';
+              particle.style.background = `hsl(${
+                Math.random() * 360
+              }, 70%, 60%)`;
+              particle.style.width = '6px';
+              particle.style.height = '6px';
+              particle.style.animationDuration = '3s';
+              particlesContainer.appendChild(particle);
+
+              setTimeout(() => {
+                particle.remove();
+              }, 3000);
+            }, i * 100);
+          }
+        }
+
+        saveData() {
+          const data = {
+            count: this.count,
+            goal: this.goal,
+            currentDhikr: this.currentDhikr,
+            clickDebounceTime: this.clickDebounceTime,
+            minClicksForAuto: this.minClicksForAuto,
+            autoModeAvailable: this.autoModeAvailable,
+            averageInterval: this.averageInterval,
+            customGroups: this.customGroups,
+            currentGroup: this.currentGroup,
+            currentGroupIndex: this.currentGroupIndex,
+            inGroupMode: this.inGroupMode,
+            dhikrOptions: this.dhikrOptions,
+          };
+
+          try {
+            localStorage.setItem('advancedTasbihData', JSON.stringify(data));
+          } catch (e) {
+            console.log('localStorage not available');
+          }
+        }
+
+        loadData() {
+          try {
+            const saved = localStorage.getItem('advancedTasbihData');
+            if (saved) {
+              const data = JSON.parse(saved);
+              this.count = data.count || 0;
+              this.goal = data.goal || 100;
+              this.currentDhikr = data.currentDhikr || 'سبحان الله';
+              this.clickDebounceTime = data.clickDebounceTime || 1000;
+              this.minClicksForAuto = data.minClicksForAuto || 10;
+              this.autoModeAvailable = data.autoModeAvailable || false;
+              this.averageInterval = data.averageInterval || 0;
+              this.customGroups = data.customGroups || [];
+              this.currentGroup = data.currentGroup || null;
+              this.currentGroupIndex = data.currentGroupIndex || 0;
+              this.inGroupMode = data.inGroupMode || false;
+              this.dhikrOptions = data.dhikrOptions || this.dhikrOptions;
+            }
+          } catch (e) {
+            console.log('Could not load data from localStorage');
+          }
+        }
+
+        resetAutoInterval() {
+          if (!this.autoModeAvailable) {
+            this.showToast('النظام التلقائي غير متاح حالياً', 'error');
+            return;
+          }
+
+          this.showInputModal(
+            'إعادة ضبط المدة التلقائية',
+            'أدخل المدة بالثواني (مثال: 2):',
+            Math.round(this.averageInterval / 1000).toString(),
+            'number',
+            (value) => {
+              const newInterval = parseFloat(value) * 1000;
+              if (newInterval && newInterval >= 500 && newInterval <= 10000) {
+                this.averageInterval = newInterval;
+
+                // If auto mode is currently running, restart it with new interval
+                if (this.autoMode) {
+                  this.stopAutoMode();
+                  setTimeout(() => this.startAutoMode(), 100);
+                }
+
+                this.saveData();
+                this.showToast(`تم تغيير المدة إلى ${value} ثانية`, 'success');
+              } else {
+                this.showToast('أدخل مدة بين 0.5 و 10 ثواني', 'error');
+              }
+            }
+          );
+        }
+      }
+
+      // Global app instance
+      let app;
+
+      document.addEventListener('DOMContentLoaded', () => {
+        app = new AdvancedTasbihApp();
+      });
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('./sw.js')
+            .then((registration) => console.log('SW registered'))
+            .catch((registrationError) =>
+              console.log('SW registration failed')
+            );
+        });
+      }
+    </script>
+  </body>
+</html>
